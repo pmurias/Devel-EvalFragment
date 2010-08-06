@@ -12,20 +12,29 @@ Devel::EvalFragment - eval perl fragments till }
 
 package Devel::EvalFragment;
 
-{ use 5.011002; }
+ use 5.011002; 
 use warnings;
 use strict;
 
+use Exporter qw(import);
+our @EXPORT = qw(eval_fragment);
 use B::Hooks::EndOfScope 0.05 ();
 
 our $VERSION = "0.000";
+
+sub eval_fragment {
+    my ($code) = @_;
+    my $skipped;
+    eval("{BEGIN {B::Hooks::EndOfScope::on_scope_end { \$skipped = Devel::EvalFragment::stop_the_parse()}}\n".$code);
+    die if $@;
+    my $executed = length($code)-$skipped+2;
+    return $executed;
+}
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
 
-sub import {
-}
 
 
 =head1 SEE ALSO
